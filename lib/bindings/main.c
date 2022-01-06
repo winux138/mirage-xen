@@ -119,15 +119,49 @@ mirage_memory_get_heap_words(value v_unit)
 
 extern size_t malloc_footprint(void);
 
+extern int malloc_trim(size_t pad);
+
+/*
+ * defined in ocaml freestanding dlmalloc.i
+*/
+extern size_t malloc_footprint_alt(void);
+
 /*
  * Caller: OS.Memory, @@noalloc
  */
 CAMLprim value
 mirage_memory_get_live_words(value v_unit)
 {
+    struct mallinfo m = mallinfo();
+    return Val_long(m.uordblks / sizeof(value));
+}
+
+/*
+ * Caller: OS.Memory, @@noalloc
+ */
+CAMLprim value
+mirage_memory_get_fast_live_words_alt(value v_unit)
+
+{
+    return Val_long(malloc_footprint_alt() / sizeof(value));
+}
+
+/*
+ * Caller: OS.Memory, @@noalloc
+ */
+CAMLprim value
+mirage_memory_get_fast_live_words(value v_unit)
+
+{
     return Val_long(malloc_footprint() / sizeof(value));
 }
 
+
+CAMLprim value
+mirage_trim_allocation(value v_unit)
+{
+    return Val_long(malloc_trim(0));
+}
 /*
  * Caller: OS.Memory, @@noalloc
  *
